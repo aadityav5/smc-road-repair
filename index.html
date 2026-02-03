@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMC Smart Road Reporting</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .card-title {
+            font-size: 24px;
+            color: #2d3748;
+            margin-bottom: 25px;
+            font-weight: 600;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .file-input-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .file-input-btn:active {
+            transform: translateY(0);
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .image-preview {
+            margin-top: 15px;
+            border-radius: 10px;
+            overflow: hidden;
+            display: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .image-preview.active {
+            display: block;
+        }
+
+        .location-display {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 14px;
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .location-display strong {
+            color: #2d3748;
+        }
+
+        .location-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .location-status.loading {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .location-status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .location-status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .ai-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(245, 87, 108, 0.3);
+        }
+
+        .ai-badge::before {
+            content: "🤖";
+            font-size: 18px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 16px 32px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(56, 239, 125, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .card-title {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛣️ SMC Smart Road Reporting</h1>
+        <p>Solapur Municipal Corporation</p>
+    </div>
+
+    <div class="container">
+        <h2 class="card-title">Report Road Damage</h2>
+
+        <form id="reportForm">
+            <!-- Image Input -->
+            <div class="form-group">
+                <label class="form-label">📸 Upload Photo of Damage</label>
+                <div class="file-input-wrapper">
+                    <button type="button" class="file-input-btn">
+                        <span>📷</span>
+                        <span id="fileButtonText">Take Photo or Choose from Gallery</span>
+                    </button>
+                    <input type="file" id="imageInput" accept="image/*" capture="environment">
+                </div>
+                <div class="image-preview" id="imagePreview">
+                    <img id="previewImage" src="" alt="Preview">
+                </div>
+            </div>
+
+            <!-- Location Display -->
+            <div class="form-group">
+                <label class="form-label">📍 Location</label>
+                <div class="location-display" id="locationDisplay">
+                    <div id="locationText">Detecting your location...</div>
+                    <span class="location-status loading" id="locationStatus">Getting GPS...</span>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label class="form-label">📝 Description (Optional)</label>
+                <textarea id="description" placeholder="Please describe the road damage in detail (e.g., pothole size, location details, safety concerns)..."></textarea>
+            </div>
+
+            <!-- AI Verification Badge -->
+            <div class="form-group">
+                <span class="ai-badge">AI Verification: Pending</span>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="submit-btn" id="submitBtn">
+                Submit Report
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // Global variables
+        let userLatitude = null;
+        let userLongitude = null;
+        let imageSelected = false;
+
+        // DOM Elements
+        const imageInput = document.getElementById('imageInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImage = document.getElementById('previewImage');
+        const locationDisplay = document.getElementById('locationDisplay');
+        const locationText = document.getElementById('locationText');
+        const locationStatus = document.getElementById('locationStatus');
+        const reportForm = document.getElementById('reportForm');
+        const fileButtonText = document.getElementById('fileButtonText');
+
+        // Get user's location on page load
+        function getLocation() {
+            if (navigator.geolocation) {
+                locationText.innerHTML = 'Detecting your location...';
+                locationStatus.className = 'location-status loading';
+                locationStatus.textContent = 'Getting GPS...';
+
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        userLatitude = position.coords.latitude;
+                        userLongitude = position.coords.longitude;
+                        
+                        locationText.innerHTML = `
+                            <strong>Latitude:</strong> ${userLatitude.toFixed(6)}<br>
+                            <strong>Longitude:</strong> ${userLongitude.toFixed(6)}
+                        `;
+                        locationStatus.className = 'location-status success';
+                        locationStatus.textContent = '✓ Location detected';
+                    },
+                    function(error) {
+                        let errorMessage = 'Unable to detect location';
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMessage = 'Location permission denied. Please enable location access.';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMessage = 'Location information unavailable.';
+                                break;
+                            case error.TIMEOUT:
+                                errorMessage = 'Location request timed out.';
+                                break;
+                        }
+                        
+                        locationText.innerHTML = errorMessage;
+                        locationStatus.className = 'location-status error';
+                        locationStatus.textContent = '✗ Location error';
+                    }
+                );
+            } else {
+                locationText.innerHTML = 'Geolocation is not supported by this browser.';
+                locationStatus.className = 'location-status error';
+                locationStatus.textContent = 'Not supported';
+            }
+        }
+
+        // Handle image selection
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            
+            if (file) {
+                imageSelected = true;
+                fileButtonText.textContent = file.name;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    imagePreview.classList.add('active');
+                };
+                reader.readAsDataURL(file);
+
+                // Try to get location again when image is selected
+                if (!userLatitude || !userLongitude) {
+                    getLocation();
+                }
+            }
+        });
+
+        // Handle form submission
+        reportForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show success alert
+            alert('Report submitted successfully!');
+            
+            // Optional: Reset form
+            // reportForm.reset();
+            // imagePreview.classList.remove('active');
+            // fileButtonText.textContent = 'Take Photo or Choose from Gallery';
+            // imageSelected = false;
+        });
+
+        // Initialize location on page load
+        window.addEventListener('load', function() {
+            getLocation();
+        });
+    </script>
+</body>
+</html>
