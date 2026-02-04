@@ -68,7 +68,6 @@
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
-        const { motion } = window.Motion;
 
         function App() {
             const [image, setImage] = useState(null);
@@ -107,10 +106,10 @@
                             lng: pos.coords.longitude.toFixed(6), 
                             status: 'Located' 
                         }),
-                        (err) => setLocation({ ...location, status: 'Location Access Denied' })
+                        (err) => setLocation(prev => ({ ...prev, status: 'Location Access Denied' }))
                     );
                 } else {
-                    setLocation({ ...location, status: 'Not Supported' });
+                    setLocation(prev => ({ ...prev, status: 'Not Supported' }));
                 }
             }, []);
 
@@ -153,10 +152,12 @@
             };
 
             return (
-                <div className="min-h-screen flex items-center justify-center p-4" onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
+                <div className="min-h-screen flex items-center justify-center p-4">
                     <div 
                         ref={cardRef}
                         className="tilt-element glass-card w-full max-w-md rounded-2xl p-8 text-center relative overflow-hidden"
+                        onMouseMove={handleMouseMove} 
+                        onMouseLeave={handleMouseLeave}
                     >
                         {/* Glow Effect */}
                         <div className="absolute -top-20 -left-20 w-40 h-40 bg-blue-500 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-pulse"></div>
@@ -183,7 +184,7 @@
                                 </label>
                             ) : (
                                 <div className="relative rounded-xl overflow-hidden border border-white/10 shadow-2xl">
-                                    <img src={image} className="w-full object-cover h-48" />
+                                    <img src={image} alt="Uploaded road damage photo" className="w-full object-cover h-48" />
                                     {aiStatus === 'analyzing' && (
                                         <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
                                             <div className="text-center">
