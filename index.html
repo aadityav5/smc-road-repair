@@ -3,415 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMC Smart Road Reporting</title>
+    <title>SMC Smart Road | AI Reporting</title>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .header {
-            text-align: center;
+            margin: 0;
+            overflow-x: hidden;
+            background: #0f172a;
             color: white;
-            margin-bottom: 30px;
-            width: 100%;
-            max-width: 600px;
+            font-family: 'Inter', sans-serif;
         }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 600;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-            margin-bottom: 8px;
-        }
-
-        .header p {
-            font-size: 14px;
-            opacity: 0.95;
-        }
-
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            padding: 30px;
-            width: 100%;
-            max-width: 600px;
-        }
-
-        .card-title {
-            font-size: 24px;
-            color: #2d3748;
-            margin-bottom: 25px;
-            font-weight: 600;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 10px;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: #4a5568;
-            margin-bottom: 8px;
-        }
-
-        .file-input-wrapper {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-            width: 100%;
-        }
-
-        .file-input-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 14px 24px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            width: 100%;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .file-input-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .file-input-btn:active {
-            transform: translateY(0);
-        }
-
-        .file-input-wrapper input[type=file] {
-            position: absolute;
-            left: 0;
+        
+        /* Animated Background */
+        .bg-gradient {
+            position: fixed;
             top: 0;
-            opacity: 0;
-            cursor: pointer;
+            left: 0;
             width: 100%;
             height: 100%;
+            z-index: -1;
+            background: linear-gradient(45deg, #0f172a, #1e293b, #0f172a);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
         }
 
-        .image-preview {
-            margin-top: 15px;
-            border-radius: 10px;
-            overflow: hidden;
-            display: none;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
-        .image-preview img {
-            width: 100%;
-            height: auto;
-            display: block;
+        /* Glassmorphism Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
 
-        .image-preview.active {
-            display: block;
+        /* 3D Tilt Effect */
+        .tilt-container {
+            perspective: 1000px;
+            transform-style: preserve-3d;
         }
-
-        .location-display {
-            background: #f7fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 15px;
-            font-size: 14px;
-            color: #4a5568;
-            line-height: 1.6;
-        }
-
-        .location-display strong {
-            color: #2d3748;
-        }
-
-        .location-status {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-top: 8px;
-        }
-
-        .location-status.loading {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .location-status.success {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .location-status.error {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 14px;
-            font-family: inherit;
-            resize: vertical;
-            min-height: 100px;
-            transition: border-color 0.3s;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .ai-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            padding: 10px 16px;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 4px 10px rgba(245, 87, 108, 0.3);
-        }
-
-        .ai-badge::before {
-            content: "🤖";
-            font-size: 18px;
-        }
-
-        .submit-btn {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-            padding: 16px 32px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: 600;
-            width: 100%;
-            margin-top: 10px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(56, 239, 125, 0.4);
-        }
-
-        .submit-btn:active {
-            transform: translateY(0);
-        }
-
-        .submit-btn:disabled {
-            background: #cbd5e0;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .icon {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 15px;
-            }
-
-            .container {
-                padding: 20px;
-            }
-
-            .header h1 {
-                font-size: 24px;
-            }
-
-            .card-title {
-                font-size: 20px;
-            }
+        
+        .tilt-element {
+            transition: transform 0.1s ease-out;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🛣️ SMC Smart Road Reporting</h1>
-        <p>Solapur Municipal Corporation</p>
-    </div>
+    <div class="bg-gradient"></div>
+    <div id="root"></div>
 
-    <div class="container">
-        <h2 class="card-title">Report Road Damage</h2>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-        <form id="reportForm">
-            <!-- Image Input -->
-            <div class="form-group">
-                <label class="form-label">📸 Upload Photo of Damage</label>
-                <div class="file-input-wrapper">
-                    <button type="button" class="file-input-btn">
-                        <span>📷</span>
-                        <span id="fileButtonText">Take Photo or Choose from Gallery</span>
-                    </button>
-                    <input type="file" id="imageInput" accept="image/*" capture="environment">
+        function App() {
+            const [image, setImage] = useState(null);
+            const [location, setLocation] = useState({ lat: null, lng: null, status: 'Detecting...' });
+            const [aiStatus, setAiStatus] = useState('idle'); // idle, analyzing, success
+            const [aiResult, setAiResult] = useState(null);
+            const cardRef = useRef(null);
+
+            // 3D Tilt Effect Logic
+            const handleMouseMove = (e) => {
+                if (!cardRef.current) return;
+                const card = cardRef.current;
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -5; // Max 5deg rotation
+                const rotateY = ((x - centerX) / centerX) * 5;
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            };
+
+            const handleMouseLeave = () => {
+                if (cardRef.current) {
+                    cardRef.current.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg)`;
+                }
+            };
+
+            // Geolocation
+            useEffect(() => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => setLocation({ 
+                            lat: pos.coords.latitude.toFixed(6), 
+                            lng: pos.coords.longitude.toFixed(6), 
+                            status: 'Located' 
+                        }),
+                        (err) => setLocation(prev => ({ ...prev, status: 'Location Access Denied' }))
+                    );
+                } else {
+                    setLocation(prev => ({ ...prev, status: 'Not Supported' }));
+                }
+            }, []);
+
+            // Handle Image Upload
+            const handleImageUpload = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        setImage(e.target.result);
+                        analyzeImageWithAI(file);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            // ⚡️ LIGHTNING AI INTEGRATION ⚡️
+            const analyzeImageWithAI = async (file) => {
+                setAiStatus('analyzing');
+                
+                // ---------------------------------------------------------
+                // TODO: PASTE YOUR LIGHTNING.AI API CODE HERE
+                // ---------------------------------------------------------
+                // Example:
+                // const formData = new FormData();
+                // formData.append('image', file);
+                // const response = await fetch('YOUR_LIGHTNING_AI_URL', { method: 'POST', body: formData });
+                // const data = await response.json();
+                // ---------------------------------------------------------
+
+                // SIMULATION (Remove this when you add real API)
+                setTimeout(() => {
+                    setAiStatus('success');
+                    setAiResult({
+                        severity: 'High (Critical)',
+                        type: 'Deep Pothole',
+                        confidence: '98.5%'
+                    });
+                }, 2500);
+            };
+
+            return (
+                <div className="min-h-screen flex items-center justify-center p-4">
+                    <div 
+                        ref={cardRef}
+                        className="tilt-element glass-card w-full max-w-md rounded-2xl p-8 text-center relative overflow-hidden"
+                        onMouseMove={handleMouseMove} 
+                        onMouseLeave={handleMouseLeave}
+                    >
+                        {/* Glow Effect */}
+                        <div className="absolute -top-20 -left-20 w-40 h-40 bg-blue-500 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-pulse"></div>
+
+                        <header className="mb-8 relative z-10">
+                            <div className="inline-block p-3 rounded-full bg-blue-500/20 mb-4 border border-blue-400/30">
+                                <span className="text-3xl">🛣️</span>
+                            </div>
+                            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-white">
+                                SMC Smart Road
+                            </h1>
+                            <p className="text-blue-200/60 text-sm mt-1">AI-Powered Damage Detection</p>
+                        </header>
+
+                        <div className="space-y-6 relative z-10">
+                            {/* Upload Area */}
+                            {!image ? (
+                                <label className="block w-full aspect-video rounded-xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-all group">
+                                    <div className="p-4 rounded-full bg-white/5 group-hover:scale-110 transition-transform mb-3">
+                                        <svg className="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    </div>
+                                    <span className="text-white/70 font-medium">Tap to Scan Road</span>
+                                    <input type="file" className="hidden" accept="image/*" capture="environment" onChange={handleImageUpload} />
+                                </label>
+                            ) : (
+                                <div className="relative rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                                    <img src={image} alt="Uploaded road damage photo" className="w-full object-cover h-48" />
+                                    {aiStatus === 'analyzing' && (
+                                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
+                                            <div className="text-center">
+                                                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                                                <p className="text-blue-200 font-mono text-sm animate-pulse">ANALYZING GEOMETRY...</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Results Section */}
+                            {aiResult && (
+                                <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-left animate-fade-in-up">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-green-300 font-bold flex items-center gap-2">
+                                            ✅ VERIFIED DAMAGE
+                                        </span>
+                                        <span className="text-xs bg-green-500/20 text-green-200 px-2 py-1 rounded">
+                                            {aiResult.confidence}
+                                        </span>
+                                    </div>
+                                    <div className="space-y-1 text-sm text-green-100/80">
+                                        <p>Type: <span className="text-white">{aiResult.type}</span></p>
+                                        <p>Severity: <span className="text-red-300 font-bold">{aiResult.severity}</span></p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Location Badge */}
+                            <div className="flex items-center justify-center gap-2 text-xs text-white/40 bg-black/20 py-2 rounded-lg">
+                                <span>📍</span>
+                                {location.lat && location.lng ? (
+                                    <span className="font-mono">{location.lat}, {location.lng}</span>
+                                ) : (
+                                    <span>{location.status}</span>
+                                )}
+                            </div>
+
+                            {/* Submit Button */}
+                            <button 
+                                className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl font-bold text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={!aiResult}
+                                onClick={() => alert("Report Sent to SMC Dashboard!")}
+                            >
+                                {aiResult ? "SUBMIT OFFICIAL REPORT" : "Waiting for Analysis..."}
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div class="image-preview" id="imagePreview">
-                    <img id="previewImage" src="" alt="Preview">
-                </div>
-            </div>
-
-            <!-- Location Display -->
-            <div class="form-group">
-                <label class="form-label">📍 Location</label>
-                <div class="location-display" id="locationDisplay">
-                    <div id="locationText">Detecting your location...</div>
-                    <span class="location-status loading" id="locationStatus">Getting GPS...</span>
-                </div>
-            </div>
-
-            <!-- Description -->
-            <div class="form-group">
-                <label class="form-label">📝 Description (Optional)</label>
-                <textarea id="description" placeholder="Please describe the road damage in detail (e.g., pothole size, location details, safety concerns)..."></textarea>
-            </div>
-
-            <!-- AI Verification Badge -->
-            <div class="form-group">
-                <span class="ai-badge">AI Verification: Pending</span>
-            </div>
-
-            <!-- Submit Button -->
-            <button type="submit" class="submit-btn" id="submitBtn">
-                Submit Report
-            </button>
-        </form>
-    </div>
-
-    <script>
-        // Global variables
-        let userLatitude = null;
-        let userLongitude = null;
-        let imageSelected = false;
-
-        // DOM Elements
-        const imageInput = document.getElementById('imageInput');
-        const imagePreview = document.getElementById('imagePreview');
-        const previewImage = document.getElementById('previewImage');
-        const locationDisplay = document.getElementById('locationDisplay');
-        const locationText = document.getElementById('locationText');
-        const locationStatus = document.getElementById('locationStatus');
-        const reportForm = document.getElementById('reportForm');
-        const fileButtonText = document.getElementById('fileButtonText');
-
-        // Get user's location on page load
-        function getLocation() {
-            if (navigator.geolocation) {
-                locationText.innerHTML = 'Detecting your location...';
-                locationStatus.className = 'location-status loading';
-                locationStatus.textContent = 'Getting GPS...';
-
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        userLatitude = position.coords.latitude;
-                        userLongitude = position.coords.longitude;
-                        
-                        locationText.innerHTML = `
-                            <strong>Latitude:</strong> ${userLatitude.toFixed(6)}<br>
-                            <strong>Longitude:</strong> ${userLongitude.toFixed(6)}
-                        `;
-                        locationStatus.className = 'location-status success';
-                        locationStatus.textContent = '✓ Location detected';
-                    },
-                    function(error) {
-                        let errorMessage = 'Unable to detect location';
-                        switch(error.code) {
-                            case error.PERMISSION_DENIED:
-                                errorMessage = 'Location permission denied. Please enable location access.';
-                                break;
-                            case error.POSITION_UNAVAILABLE:
-                                errorMessage = 'Location information unavailable.';
-                                break;
-                            case error.TIMEOUT:
-                                errorMessage = 'Location request timed out.';
-                                break;
-                        }
-                        
-                        locationText.innerHTML = errorMessage;
-                        locationStatus.className = 'location-status error';
-                        locationStatus.textContent = '✗ Location error';
-                    }
-                );
-            } else {
-                locationText.innerHTML = 'Geolocation is not supported by this browser.';
-                locationStatus.className = 'location-status error';
-                locationStatus.textContent = 'Not supported';
-            }
+            );
         }
 
-        // Handle image selection
-        imageInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            
-            if (file) {
-                imageSelected = true;
-                fileButtonText.textContent = file.name;
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImage.src = e.target.result;
-                    imagePreview.classList.add('active');
-                };
-                reader.readAsDataURL(file);
-
-                // Try to get location again when image is selected
-                if (!userLatitude || !userLongitude) {
-                    getLocation();
-                }
-            }
-        });
-
-        // Handle form submission
-        reportForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Show success alert
-            alert('Report submitted successfully!');
-            
-            // Optional: Reset form
-            // reportForm.reset();
-            // imagePreview.classList.remove('active');
-            // fileButtonText.textContent = 'Take Photo or Choose from Gallery';
-            // imageSelected = false;
-        });
-
-        // Initialize location on page load
-        window.addEventListener('load', function() {
-            getLocation();
-        });
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
