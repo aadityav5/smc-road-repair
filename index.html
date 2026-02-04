@@ -3,8 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMC Smart Road Reporting</title>
+    <title>SMC Smart Road Reporting - AI Powered</title>
+    
+    <!-- React and ReactDOM via CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel Standalone for JSX support -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
@@ -12,8 +22,39 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+            background: #0f0c29;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 100%);
+            position: relative;
+        }
+
+        /* Animated Gradient Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 100, 200, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(138, 35, 135, 0.3) 0%, transparent 50%);
+            animation: gradientShift 15s ease infinite;
+            z-index: 0;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(10%, 10%) rotate(120deg); }
+            66% { transform: translate(-10%, 5%) rotate(240deg); }
+        }
+
+        #root {
+            position: relative;
+            z-index: 1;
             min-height: 100vh;
             padding: 20px;
             display: flex;
@@ -21,105 +62,176 @@
             align-items: center;
         }
 
+        /* Glassmorphism Card Styles */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 
+                0 8px 32px 0 rgba(31, 38, 135, 0.37),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+
+        /* 3D Tilt Container */
+        .tilt-container {
+            perspective: 1000px;
+            transition: transform 0.1s ease-out;
+        }
+
+        /* Fade-in animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        /* Header Styles */
         .header {
             text-align: center;
             color: white;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
             width: 100%;
-            max-width: 600px;
+            max-width: 650px;
+            animation: fadeInUp 0.6s ease-out;
         }
 
         .header h1 {
-            font-size: 28px;
-            font-weight: 600;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-            margin-bottom: 8px;
+            font-size: 42px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #e0d9ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+            letter-spacing: -1px;
+            text-shadow: 0 2px 20px rgba(255, 255, 255, 0.3);
         }
 
         .header p {
-            font-size: 14px;
-            opacity: 0.95;
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.8);
         }
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            padding: 30px;
+        /* Main Card Styles */
+        .main-card {
+            border-radius: 24px;
+            padding: 40px;
             width: 100%;
-            max-width: 600px;
+            max-width: 650px;
+            margin-bottom: 30px;
+            animation: fadeInUp 0.8s ease-out 0.2s backwards;
+            transition: transform 0.1s ease-out, box-shadow 0.3s ease;
         }
 
         .card-title {
-            font-size: 24px;
-            color: #2d3748;
-            margin-bottom: 25px;
-            font-weight: 600;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 10px;
+            font-size: 28px;
+            color: white;
+            margin-bottom: 30px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
+        .card-title::before {
+            content: '🛣️';
+            font-size: 32px;
+        }
+
+        /* Form Group */
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 28px;
         }
 
         .form-label {
             display: block;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
-            color: #4a5568;
-            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 12px;
+            letter-spacing: 0.3px;
         }
 
-        .file-input-wrapper {
+        /* File Upload Button */
+        .upload-wrapper {
             position: relative;
-            overflow: hidden;
-            display: inline-block;
             width: 100%;
         }
 
-        .file-input-btn {
+        .upload-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 14px 24px;
+            padding: 18px 28px;
             border: none;
-            border-radius: 10px;
+            border-radius: 16px;
             cursor: pointer;
             font-size: 16px;
             font-weight: 600;
             width: 100%;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            position: relative;
+            overflow: hidden;
         }
 
-        .file-input-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        .upload-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
         }
 
-        .file-input-btn:active {
-            transform: translateY(0);
+        .upload-btn:hover::before {
+            left: 100%;
         }
 
-        .file-input-wrapper input[type=file] {
+        .upload-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+        }
+
+        .upload-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .file-input {
             position: absolute;
             left: 0;
             top: 0;
-            opacity: 0;
-            cursor: pointer;
             width: 100%;
             height: 100%;
+            opacity: 0;
+            cursor: pointer;
         }
 
+        /* Image Preview */
         .image-preview {
-            margin-top: 15px;
-            border-radius: 10px;
+            margin-top: 20px;
+            border-radius: 16px;
             overflow: hidden;
-            display: none;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.5s ease-out;
         }
 
         .image-preview img {
@@ -128,290 +240,514 @@
             display: block;
         }
 
-        .image-preview.active {
-            display: block;
-        }
-
-        .location-display {
-            background: #f7fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 15px;
-            font-size: 14px;
-            color: #4a5568;
-            line-height: 1.6;
-        }
-
-        .location-display strong {
-            color: #2d3748;
+        /* Location Display */
+        .location-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+            line-height: 1.8;
         }
 
         .location-status {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-top: 8px;
-        }
-
-        .location-status.loading {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .location-status.success {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .location-status.error {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 14px;
-            font-family: inherit;
-            resize: vertical;
-            min-height: 100px;
-            transition: border-color 0.3s;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .ai-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        .location-status.loading {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .location-status.success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .location-status.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* Textarea */
+        .input-textarea {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            font-size: 15px;
+            font-family: inherit;
+            color: white;
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.3s ease;
+        }
+
+        .input-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .input-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* AI Badge */
+        .ai-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 22px;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 600;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .ai-badge.pending {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
-            padding: 10px 16px;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 4px 10px rgba(245, 87, 108, 0.3);
         }
 
-        .ai-badge::before {
-            content: "🤖";
-            font-size: 18px;
+        .ai-badge.analyzing {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            animation: pulse 2s ease-in-out infinite;
         }
 
+        .ai-badge.verified {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Submit Button */
         .submit-btn {
             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
             color: white;
-            padding: 16px 32px;
+            padding: 18px 36px;
             border: none;
-            border-radius: 10px;
+            border-radius: 16px;
             cursor: pointer;
             font-size: 18px;
-            font-weight: 600;
+            font-weight: 700;
             width: 100%;
-            margin-top: 10px;
-            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(56, 239, 125, 0.4);
+            letter-spacing: 0.5px;
         }
 
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(56, 239, 125, 0.4);
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(56, 239, 125, 0.5);
         }
 
-        .submit-btn:active {
-            transform: translateY(0);
+        .submit-btn:active:not(:disabled) {
+            transform: translateY(-1px);
         }
 
         .submit-btn:disabled {
-            background: #cbd5e0;
+            background: rgba(255, 255, 255, 0.1);
             cursor: not-allowed;
-            transform: none;
+            box-shadow: none;
         }
 
-        .icon {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 15px;
-            }
-
-            .container {
-                padding: 20px;
-            }
-
+        /* Responsive Design */
+        @media (max-width: 768px) {
             .header h1 {
-                font-size: 24px;
+                font-size: 32px;
+            }
+
+            .main-card {
+                padding: 28px;
             }
 
             .card-title {
-                font-size: 20px;
+                font-size: 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #root {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .main-card {
+                padding: 24px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🛣️ SMC Smart Road Reporting</h1>
-        <p>Solapur Municipal Corporation</p>
-    </div>
+    <div id="root"></div>
 
-    <div class="container">
-        <h2 class="card-title">Report Road Damage</h2>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-        <form id="reportForm">
-            <!-- Image Input -->
-            <div class="form-group">
-                <label class="form-label">📸 Upload Photo of Damage</label>
-                <div class="file-input-wrapper">
-                    <button type="button" class="file-input-btn">
-                        <span>📷</span>
-                        <span id="fileButtonText">Take Photo or Choose from Gallery</span>
-                    </button>
-                    <input type="file" id="imageInput" accept="image/*" capture="environment">
-                </div>
-                <div class="image-preview" id="imagePreview">
-                    <img id="previewImage" src="" alt="Preview">
-                </div>
-            </div>
+        // ============================================
+        // LIGHTNING.AI INTEGRATION STUB
+        // ============================================
+        async function analyzeImageWithAI(imageBlob) {
+            // TODO: REPLACE THIS URL with your Lightning.ai API Endpoint
+            // const LIGHTNING_AI_ENDPOINT = 'https://your-lightning-ai-endpoint.com/analyze';
+            
+            // Simulate API call for now
+            console.log('Analyzing image with AI...', imageBlob);
+            
+            // Simulated API call - returns mock result after 2 seconds
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve({
+                        detected: true,
+                        type: 'Pothole',
+                        confidence: 0.92,
+                        severity: 'High',
+                        recommendation: 'Immediate repair recommended'
+                    });
+                }, 2000);
+            });
 
-            <!-- Location Display -->
-            <div class="form-group">
-                <label class="form-label">📍 Location</label>
-                <div class="location-display" id="locationDisplay">
-                    <div id="locationText">Detecting your location...</div>
-                    <span class="location-status loading" id="locationStatus">Getting GPS...</span>
-                </div>
-            </div>
-
-            <!-- Description -->
-            <div class="form-group">
-                <label class="form-label">📝 Description (Optional)</label>
-                <textarea id="description" placeholder="Please describe the road damage in detail (e.g., pothole size, location details, safety concerns)..."></textarea>
-            </div>
-
-            <!-- AI Verification Badge -->
-            <div class="form-group">
-                <span class="ai-badge">AI Verification: Pending</span>
-            </div>
-
-            <!-- Submit Button -->
-            <button type="submit" class="submit-btn" id="submitBtn">
-                Submit Report
-            </button>
-        </form>
-    </div>
-
-    <script>
-        // Global variables
-        let userLatitude = null;
-        let userLongitude = null;
-        let imageSelected = false;
-
-        // DOM Elements
-        const imageInput = document.getElementById('imageInput');
-        const imagePreview = document.getElementById('imagePreview');
-        const previewImage = document.getElementById('previewImage');
-        const locationDisplay = document.getElementById('locationDisplay');
-        const locationText = document.getElementById('locationText');
-        const locationStatus = document.getElementById('locationStatus');
-        const reportForm = document.getElementById('reportForm');
-        const fileButtonText = document.getElementById('fileButtonText');
-
-        // Get user's location on page load
-        function getLocation() {
-            if (navigator.geolocation) {
-                locationText.innerHTML = 'Detecting your location...';
-                locationStatus.className = 'location-status loading';
-                locationStatus.textContent = 'Getting GPS...';
-
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        userLatitude = position.coords.latitude;
-                        userLongitude = position.coords.longitude;
-                        
-                        locationText.innerHTML = `
-                            <strong>Latitude:</strong> ${userLatitude.toFixed(6)}<br>
-                            <strong>Longitude:</strong> ${userLongitude.toFixed(6)}
-                        `;
-                        locationStatus.className = 'location-status success';
-                        locationStatus.textContent = '✓ Location detected';
-                    },
-                    function(error) {
-                        let errorMessage = 'Unable to detect location';
-                        switch(error.code) {
-                            case error.PERMISSION_DENIED:
-                                errorMessage = 'Location permission denied. Please enable location access.';
-                                break;
-                            case error.POSITION_UNAVAILABLE:
-                                errorMessage = 'Location information unavailable.';
-                                break;
-                            case error.TIMEOUT:
-                                errorMessage = 'Location request timed out.';
-                                break;
-                        }
-                        
-                        locationText.innerHTML = errorMessage;
-                        locationStatus.className = 'location-status error';
-                        locationStatus.textContent = '✗ Location error';
+            // Real implementation would look like this:
+            /*
+            try {
+                const formData = new FormData();
+                formData.append('image', imageBlob);
+                
+                const response = await fetch(LIGHTNING_AI_ENDPOINT, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Authorization': 'Bearer YOUR_API_KEY'
                     }
-                );
-            } else {
-                locationText.innerHTML = 'Geolocation is not supported by this browser.';
-                locationStatus.className = 'location-status error';
-                locationStatus.textContent = 'Not supported';
+                });
+                
+                if (!response.ok) {
+                    throw new Error('AI analysis failed');
+                }
+                
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                console.error('AI Analysis Error:', error);
+                throw error;
             }
+            */
         }
 
-        // Handle image selection
-        imageInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            
-            if (file) {
-                imageSelected = true;
-                fileButtonText.textContent = file.name;
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImage.src = e.target.result;
-                    imagePreview.classList.add('active');
-                };
-                reader.readAsDataURL(file);
+        // ============================================
+        // HEADER COMPONENT
+        // ============================================
+        function Header() {
+            return (
+                <div className="header">
+                    <h1>SMC Smart Road Reporting</h1>
+                    <p>Solapur Municipal Corporation • AI-Powered Road Damage Detection</p>
+                </div>
+            );
+        }
 
-                // Try to get location again when image is selected
-                if (!userLatitude || !userLongitude) {
-                    getLocation();
+        // ============================================
+        // LOCATION STATUS COMPONENT
+        // ============================================
+        function LocationStatus({ latitude, longitude, status, error }) {
+            return (
+                <div className="form-group">
+                    <label className="form-label">📍 Location</label>
+                    <div className="location-box">
+                        {status === 'loading' && <div>Detecting your location...</div>}
+                        {status === 'success' && (
+                            <div>
+                                <strong>Latitude:</strong> {latitude?.toFixed(6)}<br />
+                                <strong>Longitude:</strong> {longitude?.toFixed(6)}
+                            </div>
+                        )}
+                        {status === 'error' && <div>{error}</div>}
+                        
+                        <span className={`location-status ${status}`}>
+                            {status === 'loading' && '⏳ Getting GPS...'}
+                            {status === 'success' && '✓ Location detected'}
+                            {status === 'error' && '✗ Location error'}
+                        </span>
+                    </div>
+                </div>
+            );
+        }
+
+        // ============================================
+        // UPLOAD CARD COMPONENT
+        // ============================================
+        function UploadCard({ onImageSelect, previewUrl }) {
+            const fileInputRef = useRef(null);
+            const [fileName, setFileName] = useState('');
+
+            const handleFileChange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    setFileName(file.name);
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        onImageSelect(e.target.result, file);
+                    };
+                    reader.readAsDataURL(file);
                 }
-            }
-        });
+            };
 
-        // Handle form submission
-        reportForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Show success alert
-            alert('Report submitted successfully!');
-            
-            // Optional: Reset form
-            // reportForm.reset();
-            // imagePreview.classList.remove('active');
-            // fileButtonText.textContent = 'Take Photo or Choose from Gallery';
-            // imageSelected = false;
-        });
+            return (
+                <div className="form-group">
+                    <label className="form-label">📸 Upload Photo of Damage</label>
+                    <div className="upload-wrapper">
+                        <button type="button" className="upload-btn">
+                            <span>📷</span>
+                            <span>{fileName || 'Take Photo or Choose from Gallery'}</span>
+                        </button>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            className="file-input"
+                            accept="image/*"
+                            capture="environment"
+                            onChange={handleFileChange}
+                        />
+                    </div>
+                    
+                    {previewUrl && (
+                        <div className="image-preview">
+                            <img src={previewUrl} alt="Preview" />
+                        </div>
+                    )}
+                </div>
+            );
+        }
 
-        // Initialize location on page load
-        window.addEventListener('load', function() {
-            getLocation();
-        });
+        // ============================================
+        // MAIN APP COMPONENT
+        // ============================================
+        function App() {
+            const [imagePreview, setImagePreview] = useState(null);
+            const [imageFile, setImageFile] = useState(null);
+            const [location, setLocation] = useState({
+                latitude: null,
+                longitude: null,
+                status: 'loading',
+                error: null
+            });
+            const [description, setDescription] = useState('');
+            const [aiStatus, setAiStatus] = useState('pending');
+            const [aiResult, setAiResult] = useState(null);
+            const [tiltStyle, setTiltStyle] = useState({});
+            const cardRef = useRef(null);
+
+            // Get location on mount
+            useEffect(() => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            setLocation({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude,
+                                status: 'success',
+                                error: null
+                            });
+                        },
+                        (error) => {
+                            let errorMessage = 'Unable to detect location';
+                            switch(error.code) {
+                                case error.PERMISSION_DENIED:
+                                    errorMessage = 'Location permission denied. Please enable location access.';
+                                    break;
+                                case error.POSITION_UNAVAILABLE:
+                                    errorMessage = 'Location information unavailable.';
+                                    break;
+                                case error.TIMEOUT:
+                                    errorMessage = 'Location request timed out.';
+                                    break;
+                            }
+                            setLocation({
+                                latitude: null,
+                                longitude: null,
+                                status: 'error',
+                                error: errorMessage
+                            });
+                        }
+                    );
+                } else {
+                    setLocation({
+                        latitude: null,
+                        longitude: null,
+                        status: 'error',
+                        error: 'Geolocation is not supported by this browser.'
+                    });
+                }
+            }, []);
+
+            // 3D Tilt Effect
+            useEffect(() => {
+                const card = cardRef.current;
+                if (!card) return;
+
+                const handleMouseMove = (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const rotateX = (y - centerY) / 20;
+                    const rotateY = (centerX - x) / 20;
+                    
+                    setTiltStyle({
+                        transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`,
+                        transition: 'transform 0.1s ease-out'
+                    });
+                };
+
+                const handleMouseLeave = () => {
+                    setTiltStyle({
+                        transform: 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)',
+                        transition: 'transform 0.5s ease-out'
+                    });
+                };
+
+                card.addEventListener('mousemove', handleMouseMove);
+                card.addEventListener('mouseleave', handleMouseLeave);
+
+                // Handle device orientation for mobile tilt
+                const handleOrientation = (e) => {
+                    if (e.beta && e.gamma) {
+                        const rotateX = e.beta / 10;
+                        const rotateY = e.gamma / 10;
+                        setTiltStyle({
+                            transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
+                            transition: 'transform 0.1s ease-out'
+                        });
+                    }
+                };
+
+                window.addEventListener('deviceorientation', handleOrientation);
+
+                return () => {
+                    card.removeEventListener('mousemove', handleMouseMove);
+                    card.removeEventListener('mouseleave', handleMouseLeave);
+                    window.removeEventListener('deviceorientation', handleOrientation);
+                };
+            }, []);
+
+            const handleImageSelect = async (preview, file) => {
+                setImagePreview(preview);
+                setImageFile(file);
+                
+                // Trigger AI analysis
+                setAiStatus('analyzing');
+                try {
+                    const result = await analyzeImageWithAI(file);
+                    setAiResult(result);
+                    setAiStatus('verified');
+                } catch (error) {
+                    console.error('AI analysis failed:', error);
+                    setAiStatus('pending');
+                }
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                
+                const reportData = {
+                    image: imageFile,
+                    location: {
+                        latitude: location.latitude,
+                        longitude: location.longitude
+                    },
+                    description: description,
+                    aiAnalysis: aiResult,
+                    timestamp: new Date().toISOString()
+                };
+                
+                console.log('Report submitted:', reportData);
+                alert(`✅ Report Submitted Successfully!\n\n${aiResult ? `AI Detection: ${aiResult.type}\nConfidence: ${(aiResult.confidence * 100).toFixed(0)}%\nSeverity: ${aiResult.severity}` : 'Pending AI verification'}`);
+            };
+
+            return (
+                <>
+                    <Header />
+                    
+                    <div 
+                        ref={cardRef}
+                        className="main-card glass-card tilt-container"
+                        style={tiltStyle}
+                    >
+                        <h2 className="card-title">Report Road Damage</h2>
+                        
+                        <form onSubmit={handleSubmit}>
+                            <UploadCard 
+                                onImageSelect={handleImageSelect}
+                                previewUrl={imagePreview}
+                            />
+                            
+                            <LocationStatus 
+                                latitude={location.latitude}
+                                longitude={location.longitude}
+                                status={location.status}
+                                error={location.error}
+                            />
+                            
+                            <div className="form-group">
+                                <label className="form-label">📝 Description (Optional)</label>
+                                <textarea
+                                    className="input-textarea"
+                                    placeholder="Please describe the road damage in detail (e.g., pothole size, location details, safety concerns)..."
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                />
+                            </div>
+                            
+                            <div className="form-group">
+                                <span className={`ai-badge ${aiStatus}`}>
+                                    {aiStatus === 'pending' && '🤖 AI Verification: Pending'}
+                                    {aiStatus === 'analyzing' && '⚡ AI Analyzing...'}
+                                    {aiStatus === 'verified' && `✓ AI Verified: ${aiResult?.type} (${(aiResult?.confidence * 100).toFixed(0)}%)`}
+                                </span>
+                            </div>
+                            
+                            <button 
+                                type="submit" 
+                                className="submit-btn"
+                                disabled={!imageFile || location.status !== 'success'}
+                            >
+                                Submit Report
+                            </button>
+                        </form>
+                    </div>
+                </>
+            );
+        }
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
