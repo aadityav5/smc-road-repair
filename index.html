@@ -312,6 +312,25 @@
     </div>
 
     <script>
+        // =============================================================================
+        // LIGHTNING AI CONFIGURATION
+        // =============================================================================
+        // Lightning AI Studio Link (for reference): 
+        // https://lightning.ai/aadityabandi5115/pothole-detection-ai-project/studios/h100-pytorch-cuda-verify-devbox/code
+        //
+        // TODO: Replace the placeholder URL below with your actual Lightning AI API endpoint
+        // 
+        // STEPS TO GET YOUR API ENDPOINT:
+        // 1. Go to your Lightning AI Studio (link above)
+        // 2. Deploy/Serve your pothole detection model
+        // 3. Copy the PUBLIC API URL (not the browser URL)
+        // 4. Replace the placeholder below with your actual API endpoint
+        //
+        // Example: const LIGHTNING_API_URL = "https://your-app.lightning.ai/predict";
+        // =============================================================================
+        const LIGHTNING_API_URL = "YOUR_LIGHTNING_AI_API_ENDPOINT_HERE";
+        const LIGHTNING_AI_STUDIO_LINK = "https://lightning.ai/aadityabandi5115/pothole-detection-ai-project/studios/h100-pytorch-cuda-verify-devbox/code";
+
         // Global variables
         let userLatitude = null;
         let userLongitude = null;
@@ -394,9 +413,82 @@
             }
         });
 
+        // Analyze image with Lightning AI
+        async function analyzeImageWithAI(imageFile) {
+            console.log('=== Lightning AI Analysis ===');
+            console.log('Studio Link:', LIGHTNING_AI_STUDIO_LINK);
+            console.log('Configured API URL:', LIGHTNING_API_URL);
+            
+            // Check if API URL has been configured
+            if (LIGHTNING_API_URL === "YOUR_LIGHTNING_AI_API_ENDPOINT_HERE" || !LIGHTNING_API_URL.startsWith('http')) {
+                console.warn('⚠️ Lightning AI API endpoint not configured yet!');
+                console.log('📝 Please update LIGHTNING_API_URL with your actual API endpoint.');
+                console.log('📖 See configuration instructions at the top of this script.');
+                
+                // Simulate AI analysis for demo purposes
+                console.log('🤖 Running in SIMULATION mode...');
+                return {
+                    simulated: true,
+                    isPothole: Math.random() > 0.3, // Random result for demo
+                    confidence: (Math.random() * 0.4 + 0.6).toFixed(2), // 60-100% confidence
+                    message: 'This is a simulated result. Configure your Lightning AI API endpoint for real analysis.'
+                };
+            }
+            
+            try {
+                // Prepare the image for upload
+                const formData = new FormData();
+                formData.append('image', imageFile);
+                
+                console.log('📤 Sending image to Lightning AI API...');
+                console.log('API Endpoint:', LIGHTNING_API_URL);
+                
+                // Make API call to Lightning AI
+                const response = await fetch(LIGHTNING_API_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API request failed with status ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('✅ Lightning AI Response:', result);
+                
+                return result;
+                
+            } catch (error) {
+                console.error('❌ Error calling Lightning AI API:', error);
+                return {
+                    error: true,
+                    message: error.message,
+                    fallback: 'Using manual verification'
+                };
+            }
+        }
+
         // Handle form submission
-        reportForm.addEventListener('submit', function(e) {
+        reportForm.addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            // Get the uploaded image file
+            const imageFile = imageInput.files[0];
+            
+            // Perform AI analysis if image is uploaded
+            if (imageFile) {
+                console.log('Starting AI analysis...');
+                const aiResult = await analyzeImageWithAI(imageFile);
+                
+                // Log the result
+                console.log('AI Analysis Result:', aiResult);
+                
+                // Update UI based on AI result (when configured)
+                if (aiResult.simulated) {
+                    console.log('💡 Simulated detection:', aiResult.isPothole ? 'Pothole detected' : 'No pothole detected');
+                    console.log('💡 Confidence:', aiResult.confidence);
+                }
+            }
             
             // Show success alert
             alert('Report submitted successfully!');
