@@ -57,29 +57,105 @@
         const preview = document.getElementById('preview');
         const locationStatus = document.getElementById('locationStatus');
 
-        // Analyze Image with AI
-        function analyzeImageWithAI(imageData) {
+        // Lightning.ai API endpoint configuration
+        const LIGHTNING_AI_API_URL = "https://11434-dep-01kgm1ghq8p0d4c2533jdf4jcg-d.cloudspaces.litng.ai";
+
+        // Analyze Image with AI using Lightning.ai deployed model
+        async function analyzeImageWithAI(imageData) {
+            try {
+                // Extract base64 data from data URL (remove the prefix like "data:image/jpeg;base64,")
+                const base64Data = imageData.split(',')[1];
+                
+                console.log('🚀 [Lightning.ai] Starting image analysis...');
+                console.log('🔗 [Lightning.ai] API URL:', LIGHTNING_AI_API_URL);
+                console.log('📦 [Lightning.ai] Image data size:', Math.round(base64Data.length / 1024), 'KB');
+                
+                // Try common Lightning.ai API patterns
+                const endpoints = ['/predict', '/api/predict', '/'];
+                let lastError = null;
+                
+                for (const endpoint of endpoints) {
+                    try {
+                        const fullUrl = `${LIGHTNING_AI_API_URL}${endpoint}`;
+                        console.log(`📡 [Lightning.ai] Attempting request to: ${fullUrl}`);
+                        
+                        const startTime = performance.now();
+                        const response = await fetch(fullUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ image: base64Data })
+                        });
+                        const endTime = performance.now();
+
+                        console.log(`⏱️ [Lightning.ai] Response received in ${(endTime - startTime).toFixed(0)}ms`);
+                        console.log(`📊 [Lightning.ai] Response status: ${response.status} ${response.statusText}`);
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            console.log('✅ [Lightning.ai] Successful response:', result);
+                            
+                            // Handle various response formats from the model
+                            const severity = result.severity || result.prediction?.severity || result.result?.severity || "Medium";
+                            const issue = result.issue || result.prediction?.issue || result.result?.issue || 
+                                          result.class || result.prediction?.class || result.label || "Road Damage";
+                            let confidence = result.confidence || result.prediction?.confidence || result.score || null;
+                            
+                            // Normalize confidence to 0-1 range if needed
+                            if (confidence !== null && confidence > 1) {
+                                confidence = confidence / 100;
+                            }
+                            
+                            const parsedResult = { 
+                                severity: severity, 
+                                issue: issue,
+                                confidence: confidence
+                            };
+                            console.log('📋 [Lightning.ai] Parsed result:', parsedResult);
+                            return parsedResult;
+                        }
+                        lastError = new Error(`API endpoint ${endpoint} returned status ${response.status}`);
+                        console.warn(`⚠️ [Lightning.ai] Endpoint ${endpoint} failed:`, lastError.message);
+                    } catch (err) {
+                        console.warn(`❌ [Lightning.ai] Request to ${endpoint} failed:`, err.message);
+                        lastError = err;
+                        continue;
+                    }
+                }
+                
+                // If all API endpoints fail, fall back to local analysis
+                console.warn('⚠️ [Lightning.ai] All API endpoints failed, using fallback analysis');
+                console.warn('⚠️ [Lightning.ai] Last error:', lastError);
+                return await fallbackAnalysis(imageData);
+                
+            } catch (error) {
+                console.error('❌ [Lightning.ai] Error calling API:', error);
+                // Fallback to local analysis if API fails
+                return await fallbackAnalysis(imageData);
+            }
+        }
+        
+        // Fallback local analysis when API is unavailable
+        function fallbackAnalysis(imageData) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
                 img.onload = function() {
                     try {
-                        // Create canvas to analyze image
                         const canvas = document.createElement('canvas');
                         canvas.width = img.width;
                         canvas.height = img.height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0);
                         
-                        // Get image data for analysis
                         const imageDataObj = ctx.getImageData(0, 0, canvas.width, canvas.height);
                         const pixels = imageDataObj.data;
                         
-                        // Analysis thresholds
                         const DARK_RATIO_THRESHOLD = 0.5;
                         const MEDIUM_BRIGHTNESS_THRESHOLD = 150;
                         const DARK_PIXEL_THRESHOLD = 100;
                         
-                        // Calculate image characteristics
                         let totalBrightness = 0;
                         let darkPixels = 0;
                         let totalPixels = pixels.length / 4;
@@ -88,7 +164,6 @@
                             const r = pixels[i];
                             const g = pixels[i + 1];
                             const b = pixels[i + 2];
-                            // Use luminance formula for better perception
                             const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
                             totalBrightness += brightness;
                             if (brightness < DARK_PIXEL_THRESHOLD) darkPixels++;
@@ -97,7 +172,6 @@
                         const avgBrightness = totalBrightness / totalPixels;
                         const darkRatio = darkPixels / totalPixels;
                         
-                        // Determine severity based on image characteristics
                         let severity, issue;
                         if (darkRatio > DARK_RATIO_THRESHOLD) {
                             severity = "High";
@@ -110,7 +184,7 @@
                             issue = "Surface Wear";
                         }
                         
-                        resolve({ severity, issue });
+                        resolve({ severity, issue, fallback: true });
                     } catch (error) {
                         reject(error);
                     }
@@ -133,10 +207,19 @@
                     document.querySelector('.ai-badge').textContent = "AI Analysis: ⏳ Verifying...";
                     
                     try {
-                        // Perform actual AI analysis
+                        // Perform AI analysis using Lightning.ai deployed model
                         const result = await analyzeImageWithAI(e.target.result);
                         
-                        document.querySelector('.ai-badge').innerHTML = `✅ AI Verified: <br>Severity: ${result.severity} (${result.issue})`;
+                        // Build result display
+                        let resultText = `✅ AI Verified: <br>Severity: ${result.severity} (${result.issue})`;
+                        if (result.confidence) {
+                            resultText += `<br>Confidence: ${(result.confidence * 100).toFixed(1)}%`;
+                        }
+                        if (result.fallback) {
+                            resultText += `<br><small>(Fallback analysis - API unavailable)</small>`;
+                        }
+                        
+                        document.querySelector('.ai-badge').innerHTML = resultText;
                         document.querySelector('.ai-badge').style.background = "#d4edda";
                         document.querySelector('.ai-badge').style.color = "#155724";
                         document.querySelector('.ai-badge').style.borderColor = "#c3e6cb";
