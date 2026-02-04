@@ -420,7 +420,7 @@
             console.log('Configured API URL:', LIGHTNING_API_URL);
             
             // Check if API URL has been configured
-            if (LIGHTNING_API_URL === "YOUR_LIGHTNING_AI_API_ENDPOINT_HERE") {
+            if (LIGHTNING_API_URL === "YOUR_LIGHTNING_AI_API_ENDPOINT_HERE" || !LIGHTNING_API_URL.startsWith('http')) {
                 console.warn('⚠️ Lightning AI API endpoint not configured yet!');
                 console.log('📝 Please update LIGHTNING_API_URL with your actual API endpoint.');
                 console.log('📖 See configuration instructions at the top of this script.');
