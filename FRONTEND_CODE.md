@@ -1,0 +1,341 @@
+# Frontend Prototype Code
+
+This document contains the complete frontend prototype code for the SMC Road Repair application. You can copy the entire code below and integrate it into your project.
+
+---
+
+## Complete `index.html` Code
+
+Copy the entire code block below:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMC Road Reporting</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #0056b3; padding-bottom: 10px; }
+        h1 { margin: 0; color: #0056b3; font-size: 1.5rem; }
+        .card { display: flex; flex-direction: column; gap: 15px; }
+        .btn { background-color: #0056b3; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 1rem; cursor: pointer; text-align: center; width: 100%; box-sizing: border-box; }
+        .btn-success { background-color: #28a745; }
+        input[type="file"] { display: none; }
+        .upload-btn { background-color: #e9ecef; color: #333; border: 2px dashed #ced4da; padding: 30px; text-align: center; border-radius: 8px; cursor: pointer; }
+        #preview { width: 100%; max-height: 300px; object-fit: cover; border-radius: 8px; display: none; margin-top: 10px; }
+        .location-badge { background: #e2e6ea; padding: 8px; border-radius: 6px; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
+        .ai-badge { background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; border: 1px solid #ffeeba; }
+        textarea { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 8px; resize: vertical; min-height: 80px; box-sizing: border-box; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SMC Smart Road Reporting</h1>
+        </header>
+        <div class="card">
+            <!-- Upload Section -->
+            <label class="upload-btn" for="cameraInput">
+                📷 Tap to Take Photo
+                <input type="file" id="cameraInput" accept="image/*" capture="environment">
+            </label>
+            <img id="preview" alt="Road Damage Preview">
+
+            <!-- Location Section -->
+            <div class="location-badge" id="locationStatus">
+                📍 Detecting Location...
+            </div>
+
+            <!-- AI Placeholder -->
+            <div class="ai-badge">
+                AI Analysis: Pending Photo
+            </div>
+
+            <!-- Description -->
+            <textarea placeholder="Add description (e.g., Deep pothole near main chowk)..."></textarea>
+
+            <!-- Submit -->
+            <button class="btn btn-success" onclick="submitReport()">Submit Report</button>
+        </div>
+    </div>
+
+    <script>
+        const cameraInput = document.getElementById('cameraInput');
+        const preview = document.getElementById('preview');
+        const locationStatus = document.getElementById('locationStatus');
+
+        // Lightning.ai API endpoint configuration
+        const LIGHTNING_AI_API_URL = "https://11434-dep-01kgm1ghq8p0d4c2533jdf4jcg-d.cloudspaces.litng.ai";
+
+        // Analyze Image with AI using Lightning.ai deployed model
+        async function analyzeImageWithAI(imageData) {
+            try {
+                // Extract base64 data from data URL (remove the prefix like "data:image/jpeg;base64,")
+                const base64Data = imageData.split(',')[1];
+                
+                console.log('🚀 [Lightning.ai] Starting image analysis...');
+                console.log('🔗 [Lightning.ai] API URL:', LIGHTNING_AI_API_URL);
+                console.log('📦 [Lightning.ai] Image data size:', Math.round(base64Data.length / 1024), 'KB');
+                
+                // Try common Lightning.ai API patterns
+                const endpoints = ['/predict', '/api/predict', '/'];
+                let lastError = null;
+                
+                for (const endpoint of endpoints) {
+                    try {
+                        const fullUrl = `${LIGHTNING_AI_API_URL}${endpoint}`;
+                        console.log(`📡 [Lightning.ai] Attempting request to: ${fullUrl}`);
+                        
+                        const startTime = performance.now();
+                        const response = await fetch(fullUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ image: base64Data })
+                        });
+                        const endTime = performance.now();
+
+                        console.log(`⏱️ [Lightning.ai] Response received in ${(endTime - startTime).toFixed(0)}ms`);
+                        console.log(`📊 [Lightning.ai] Response status: ${response.status} ${response.statusText}`);
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            console.log('✅ [Lightning.ai] Successful response:', result);
+                            
+                            // Handle various response formats from the model
+                            const severity = result.severity || result.prediction?.severity || result.result?.severity || "Medium";
+                            const issue = result.issue || result.prediction?.issue || result.result?.issue || 
+                                          result.class || result.prediction?.class || result.label || "Road Damage";
+                            let confidence = result.confidence || result.prediction?.confidence || result.score || null;
+                            
+                            // Normalize confidence to 0-1 range if needed
+                            if (confidence !== null && confidence > 1) {
+                                confidence = confidence / 100;
+                            }
+                            
+                            const parsedResult = { 
+                                severity: severity, 
+                                issue: issue,
+                                confidence: confidence
+                            };
+                            console.log('📋 [Lightning.ai] Parsed result:', parsedResult);
+                            return parsedResult;
+                        }
+                        lastError = new Error(`API endpoint ${endpoint} returned status ${response.status}`);
+                        console.warn(`⚠️ [Lightning.ai] Endpoint ${endpoint} failed:`, lastError.message);
+                    } catch (err) {
+                        console.warn(`❌ [Lightning.ai] Request to ${endpoint} failed:`, err.message);
+                        lastError = err;
+                        continue;
+                    }
+                }
+                
+                // If all API endpoints fail, fall back to local analysis
+                console.warn('⚠️ [Lightning.ai] All API endpoints failed, using fallback analysis');
+                console.warn('⚠️ [Lightning.ai] Last error:', lastError);
+                return await fallbackAnalysis(imageData);
+                
+            } catch (error) {
+                console.error('❌ [Lightning.ai] Error calling API:', error);
+                // Fallback to local analysis if API fails
+                return await fallbackAnalysis(imageData);
+            }
+        }
+        
+        // Fallback local analysis when API is unavailable
+        function fallbackAnalysis(imageData) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = function() {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        
+                        const imageDataObj = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const pixels = imageDataObj.data;
+                        
+                        const DARK_RATIO_THRESHOLD = 0.5;
+                        const MEDIUM_BRIGHTNESS_THRESHOLD = 150;
+                        const DARK_PIXEL_THRESHOLD = 100;
+                        
+                        let totalBrightness = 0;
+                        let darkPixels = 0;
+                        let totalPixels = pixels.length / 4;
+                        
+                        for (let i = 0; i < pixels.length; i += 4) {
+                            const r = pixels[i];
+                            const g = pixels[i + 1];
+                            const b = pixels[i + 2];
+                            const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+                            totalBrightness += brightness;
+                            if (brightness < DARK_PIXEL_THRESHOLD) darkPixels++;
+                        }
+                        
+                        const avgBrightness = totalBrightness / totalPixels;
+                        const darkRatio = darkPixels / totalPixels;
+                        
+                        let severity, issue;
+                        if (darkRatio > DARK_RATIO_THRESHOLD) {
+                            severity = "High";
+                            issue = "Pothole";
+                        } else if (avgBrightness < MEDIUM_BRIGHTNESS_THRESHOLD) {
+                            severity = "Medium";
+                            issue = "Crack";
+                        } else {
+                            severity = "Low";
+                            issue = "Surface Wear";
+                        }
+                        
+                        resolve({ severity, issue, fallback: true });
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                img.onerror = function() {
+                    reject(new Error('Failed to load image'));
+                };
+                img.src = imageData;
+            });
+        }
+
+        // Handle Image Upload
+        cameraInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    document.querySelector('.ai-badge').textContent = "AI Analysis: ⏳ Verifying...";
+                    
+                    try {
+                        // Perform AI analysis using Lightning.ai deployed model
+                        const result = await analyzeImageWithAI(e.target.result);
+                        
+                        // Build result display
+                        let resultText = `✅ AI Verified: <br>Severity: ${result.severity} (${result.issue})`;
+                        if (result.confidence) {
+                            resultText += `<br>Confidence: ${(result.confidence * 100).toFixed(1)}%`;
+                        }
+                        if (result.fallback) {
+                            resultText += `<br><small>(Fallback analysis - API unavailable)</small>`;
+                        }
+                        
+                        document.querySelector('.ai-badge').innerHTML = resultText;
+                        document.querySelector('.ai-badge').style.background = "#d4edda";
+                        document.querySelector('.ai-badge').style.color = "#155724";
+                        document.querySelector('.ai-badge').style.borderColor = "#c3e6cb";
+                    } catch (error) {
+                        console.error('AI Analysis failed:', error);
+                        document.querySelector('.ai-badge').textContent = "❌ AI Analysis Failed";
+                        document.querySelector('.ai-badge').style.background = "#f8d7da";
+                        document.querySelector('.ai-badge').style.color = "#721c24";
+                        document.querySelector('.ai-badge').style.borderColor = "#f5c6cb";
+                    }
+                }
+                reader.readAsDataURL(file);
+                getLocation();
+            }
+        });
+
+        // Get Location
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                locationStatus.textContent = "❌ Geolocation is not supported by this browser.";
+            }
+        }
+
+        function showPosition(position) {
+            locationStatus.innerHTML = `📍 Lat: ${position.coords.latitude.toFixed(6)}, Long: ${position.coords.longitude.toFixed(6)}`;
+        }
+
+        function showError(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    locationStatus.textContent = "❌ User denied the request for Geolocation.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    locationStatus.textContent = "❌ Location information is unavailable.";
+                    break;
+                case error.TIMEOUT:
+                    locationStatus.textContent = "❌ The request to get user location timed out.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    locationStatus.textContent = "❌ An unknown error occurred.";
+                    break;
+            }
+        }
+
+        // Simulate Submission
+        function submitReport() {
+            alert("Report submitted successfully! Data sent to SMC Dashboard.");
+            
+            // Clear the form after submission
+            const textarea = document.querySelector('textarea');
+            textarea.value = '';
+            
+            // Reset image preview
+            preview.style.display = 'none';
+            preview.src = '';
+            
+            // Reset AI badge
+            const aiBadge = document.querySelector('.ai-badge');
+            aiBadge.textContent = "AI Analysis: Pending Photo";
+            aiBadge.style.background = "#fff3cd";
+            aiBadge.style.color = "#856404";
+            aiBadge.style.borderColor = "#ffeeba";
+            
+            // Clear file input
+            cameraInput.value = '';
+            
+            // Reset location status
+            locationStatus.textContent = "📍 Detecting Location...";
+            getLocation();
+        }
+        
+        // Init location on load
+        getLocation();
+    </script>
+</body>
+</html>
+```
+
+---
+
+## How to Use This Code
+
+1. **Copy the code**: Click anywhere inside the code block above and use `Ctrl+C` (Windows/Linux) or `Cmd+C` (Mac) to copy
+2. **Create a new file**: In your project, create a new file called `index.html`
+3. **Paste the code**: Paste the copied code into the file
+4. **Save and open**: Save the file and open it in a web browser
+
+## Configuration
+
+To use your own Lightning.ai endpoint, change this line in the JavaScript section:
+
+```javascript
+const LIGHTNING_AI_API_URL = "https://your-lightning-ai-url.cloudspaces.litng.ai";
+```
+
+---
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| 📷 Photo Capture | Take or upload photos of road damage |
+| 🤖 AI Analysis | Automatic damage classification using Lightning.ai |
+| 📍 GPS Location | Automatic location detection |
+| 📝 Description | Add custom notes about the damage |
+| ✅ Submit | Send report to SMC Dashboard |
