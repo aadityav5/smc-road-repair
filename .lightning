@@ -1,0 +1,8 @@
+[app]
+name = smc-road-repair
+
+[build]
+python_version = 3.10
+
+[run]
+entry_point = app.py
